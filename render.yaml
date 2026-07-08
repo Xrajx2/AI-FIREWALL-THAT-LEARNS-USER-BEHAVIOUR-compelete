@@ -1,0 +1,29 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: ai-firewall-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    # We cd into backend directory and run uvicorn
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13
+      - key: PORT
+        value: "10000"
+
+  # Frontend Static Site
+  - type: web # Render uses 'web' env 'static' for Static Sites
+    name: ai-firewall-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: ai-firewall-backend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NODE_VERSION
+        value: 20.19.0
